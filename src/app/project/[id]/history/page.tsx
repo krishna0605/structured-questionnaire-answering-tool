@@ -29,10 +29,10 @@ export default function HistoryPage() {
   /* eslint-disable react-hooks/exhaustive-deps */
   const loadVersions = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from('answer_versions').select('*').eq('project_id', projectId).order('saved_at', { ascending: false });
+    const { data } = await supabase.from('answer_versions').select('*').eq('project_id', projectId).order('created_at', { ascending: false });
     if (data) {
-      const mapped = data.map((v: { id: string; label: string; saved_at: string; snapshot: string }) => ({
-        id: v.id, label: v.label, saved_at: v.saved_at,
+      const mapped = data.map((v: { id: string; label: string; created_at: string; snapshot: string }) => ({
+        id: v.id, label: v.label, saved_at: v.created_at,
         snapshot: typeof v.snapshot === 'string' ? JSON.parse(v.snapshot) : v.snapshot,
       }));
       setVersions(mapped);
