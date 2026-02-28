@@ -181,8 +181,12 @@ export default function ProjectPage() {
 
   /* ── Edit / Save / Export ── */
   const handleSaveEdit = async (questionId: string, answerId: string) => {
-    const { error } = await supabase.from('answers').update({ answer_text: editText, is_edited: true }).eq('id', answerId);
-    if (!error) { toast.success('Edit saved'); setEditingAnswer(null); await loadData(); }
+    const res = await fetch('/api/answers/edit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answerId, answerText: editText }),
+    });
+    if (res.ok) { toast.success('Edit saved'); setEditingAnswer(null); await loadData(); }
     else toast.error('Failed to save');
   };
 
