@@ -31,10 +31,30 @@ export default function HistoryPage() {
     setLoading(true);
     const { data } = await supabase.from('answer_versions').select('*').eq('project_id', projectId).order('created_at', { ascending: false });
     if (data) {
-      const mapped = data.map((v: { id: string; label: string; created_at: string; snapshot: string }) => ({
-        id: v.id, label: v.label, saved_at: v.created_at,
-        snapshot: typeof v.snapshot === 'string' ? JSON.parse(v.snapshot) : v.snapshot,
-      }));
+      const mapped = data.map((v: { id: string; label: string; created_at: string; snapshot: unknown }) => {
+        let raw = v.snapshot;
+        if (typeof raw === 'string') raw = JSON.parse(raw);
+        // API stores snapshot as { questions: [{ question, answer, citations }] }
+        // Normalize to flat array of { question_id, question_text, question_number, answer_text, confidence_score, is_not_found, is_edited }
+        let flatSnapshot: VersionSnapshot['snapshot'] = [];
+        if (Array.isArray(raw)) {
+          flatSnapshot = raw;
+        } else if (raw && typeof raw === 'object' && 'questions' in raw && Array.isArray((raw as { questions: unknown[] }).questions)) {
+          flatSnapshot = (raw as { questions: { question: { id: string; question_text: string; question_number: number }; answer: { answer_text: string; confidence_score: number | null; is_not_found: boolean; is_edited: boolean } | null }[] }).questions.map((item) => ({
+            question_id: item.question?.id || '',
+            question_text: item.question?.question_text || '',
+            question_number: item.question?.question_number || 0,
+            answer_text: item.answer?.answer_text || 'No answer',
+            confidence_score: item.answer?.confidence_score ?? null,
+            is_not_found: item.answer?.is_not_found ?? false,
+            is_edited: item.answer?.is_edited ?? false,
+          }));
+        }
+        return {
+          id: v.id, label: v.label, saved_at: v.created_at,
+          snapshot: flatSnapshot,
+        };
+      });
       setVersions(mapped);
       if (mapped.length > 0 && !selectedVersion) setSelectedVersion(mapped[0]);
     }
