@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
-  serverExternalPackages: ['pdf-parse', 'xlsx', 'pdfjs-dist'],
+  serverExternalPackages: ['xlsx'],
 };
 
 export default nextConfig;

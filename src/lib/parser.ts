@@ -1,4 +1,4 @@
-import { PDFParse } from 'pdf-parse';
+import { extractText } from 'unpdf';
 import * as XLSX from 'xlsx';
 
 export interface ParsedQuestion {
@@ -8,10 +8,8 @@ export interface ParsedQuestion {
 }
 
 export async function parsePDF(buffer: Buffer): Promise<string> {
-  const parser = new PDFParse({ data: buffer });
-  const result = await parser.getText();
-  await parser.destroy();
-  return result.text;
+  const { text } = await extractText(new Uint8Array(buffer));
+  return Array.isArray(text) ? text.join('\n') : text;
 }
 
 export function parseXLSX(buffer: Buffer): ParsedQuestion[] {
