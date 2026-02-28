@@ -298,9 +298,19 @@ export default function DashboardPage() {
 
         {/* Project List */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px' }}>
-            <Loader2 style={{ width: '36px', height: '36px', color: '#7c3aed', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
-            <p style={{ fontSize: '15px', color: '#6b6b80' }}>Loading projects...</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+            {[1, 2, 3].map((i) => (
+              <div key={i} style={{ ...cardBase, padding: '24px', animation: 'pulse 1.5s ease-in-out infinite' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#22222f' }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ height: '14px', width: '60%', borderRadius: '6px', background: '#22222f', marginBottom: '8px' }} />
+                    <div style={{ height: '10px', width: '40%', borderRadius: '6px', background: '#1a1a28' }} />
+                  </div>
+                </div>
+                <div style={{ height: '10px', width: '80%', borderRadius: '6px', background: '#1a1a28' }} />
+              </div>
+            ))}
           </div>
         ) : projects.length === 0 ? (
           <motion.div

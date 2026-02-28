@@ -227,9 +227,36 @@ export default function ProjectPage() {
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0f' }}>
-        <div style={{ textAlign: 'center' }}>
-          <Loader2 style={{ width: '48px', height: '48px', color: '#7c3aed', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
-          <p style={{ fontSize: '16px', fontWeight: 500, color: '#a0a0b0' }}>Loading workspace...</p>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px' }}>
+          {/* Skeleton stat row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '28px' }}>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} style={{ ...cardStyle, padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', animation: 'pulse 1.5s ease-in-out infinite' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#22222f' }} />
+                <div>
+                  <div style={{ height: '20px', width: '48px', borderRadius: '6px', background: '#22222f', marginBottom: '6px' }} />
+                  <div style={{ height: '12px', width: '56px', borderRadius: '6px', background: '#1a1a28' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Skeleton upload/question areas */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '28px' }}>
+            {[1, 2].map((i) => (
+              <div key={i} style={{ ...cardStyle, padding: '28px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: `${i * 0.2}s` }}>
+                <div style={{ height: '16px', width: '50%', borderRadius: '6px', background: '#22222f', marginBottom: '16px' }} />
+                <div style={{ height: '80px', borderRadius: '10px', background: '#1a1a28' }} />
+              </div>
+            ))}
+          </div>
+          {/* Skeleton Q&A list */}
+          {[1, 2, 3].map((i) => (
+            <div key={i} style={{ ...cardStyle, padding: '24px', marginBottom: '12px', animation: 'pulse 1.5s ease-in-out infinite', animationDelay: `${i * 0.15}s` }}>
+              <div style={{ height: '14px', width: '70%', borderRadius: '6px', background: '#22222f', marginBottom: '12px' }} />
+              <div style={{ height: '12px', width: '90%', borderRadius: '6px', background: '#1a1a28', marginBottom: '8px' }} />
+              <div style={{ height: '12px', width: '50%', borderRadius: '6px', background: '#1a1a28' }} />
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -243,6 +270,27 @@ export default function ProjectPage() {
     <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#f0f0f5', fontFamily: "'Inter', sans-serif" }}>
       {/* Multi-Step Loader Overlay */}
       <MultiStepLoader loadingStates={GENERATION_STEPS} loading={generating} duration={6000} />
+
+      {/* Floating Status Bar */}
+      <AnimatePresence>
+        {isUIFrozen && !generating && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            style={{
+              position: 'fixed', top: '16px', right: '24px', zIndex: 100,
+              display: 'flex', alignItems: 'center', gap: '10px',
+              padding: '10px 20px', borderRadius: '10px',
+              background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)',
+              backdropFilter: 'blur(12px)', color: '#d4b5ff', fontSize: '13px', fontWeight: 600,
+            }}
+          >
+            <Loader2 style={{ width: '16px', height: '16px', animation: 'spin 1s linear infinite' }} />
+            {savingVersion ? 'Saving version...' : exporting ? 'Exporting DOCX...' : uploading ? 'Uploading...' : 'Processing...'}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Navbar */}
       <motion.nav

@@ -1,80 +1,70 @@
-# Test Cases & GitHub Actions CI
+# Fix UI Issues — Loading Animations, Save Version, and Saving State
 
-Add automated testing with Jest + React Testing Library and a GitHub Actions CI pipeline.
+## Identified Issues
+
+### Issue 1: Static Loading Spinners 🔴
+**Root cause:** All `Loader2` icons use `animation: 'spin 1s linear infinite'` but **`@keyframes spin` is not defined** in [globals.css](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/app/globals.css). The spinner renders but never rotates.
+
+**Affected pages:** Dashboard (loading projects), Project (save button, export button, generate button), History (loading versions).
+
+### Issue 2: Save Version Not Working 🔴
+**Root cause:** Needs investigation via browser network tab — the API route logic at `/api/versions` POST looks correct. Possible causes:
+- `answer_versions` table column mismatch (`saved_at` vs `created_at`)
+- RLS policy blocking inserts
+- Empty questionnaires list causing empty snapshot
+
+### Issue 3: No Visual Lock During Save
+**Current state:** `isUIFrozen` correctly disables buttons, but there's no **visual overlay** or status indicator showing the user that saving is in progress.
+
+### Issue 4: Loading Skeleton is Plain
+The loading state is just a static icon + text — no shimmer/pulse animation to indicate activity.
+
+---
 
 ## Proposed Changes
 
-### Testing Framework Setup
+### Global Styles
 
-#### [NEW] [jest.config.ts](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/jest.config.ts)
-Jest configuration with `ts-jest` and `@testing-library/jest-dom`. Path aliases mapped to match [tsconfig.json](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/tsconfig.json).
-
-#### [MODIFY] [package.json](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/package.json)
-- Add devDependencies: `jest`, `ts-jest`, `@types/jest`, `@testing-library/react`, `@testing-library/jest-dom`, `jest-environment-jsdom`
-- Add `"test"` script
+#### [MODIFY] [globals.css](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/app/globals.css)
+- Add `@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`
+- Add `@keyframes pulse` for loading skeletons
 
 ---
 
-### Test Suites (Unit Tests)
+### Dashboard
 
-#### [NEW] `__tests__/lib/chunker.test.ts`
-Pure function tests for [chunkText()](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/lib/chunker.ts#6-44):
-- Empty/whitespace input → empty array
-- Single chunk (short text) → 1 chunk with index 0
-- Multi-chunk with correct overlap
-- Custom `maxTokens` / `overlapTokens` parameters
-- Very long text → multiple sequential chunks
-
-#### [NEW] `__tests__/lib/parser.test.ts`
-Tests for [extractQuestionsFromText()](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/lib/parser.ts#52-114):
-- Numbered questions (`1. / 1) / Q1:`) parsing
-- Multi-line question continuation
-- Fallback to paragraph splitting when no numbering
-- Edge cases: empty input, single question, duplicate numbers
-
-#### [NEW] `__tests__/lib/openai.test.ts`
-Tests with **mocked OpenAI client**:
-- [generateEmbedding()](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/lib/openai.ts#7-14) returns correct embedding array
-- [generateAnswer()](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/lib/openai.ts#15-68) parses valid JSON response
-- [generateAnswer()](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/lib/openai.ts#15-68) handles malformed JSON gracefully (fallback)
-
-#### [NEW] `__tests__/lib/export.test.ts`
-Tests for [generateDocx()](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/lib/export.ts#17-237) with mock data:
-- Returns a valid Buffer
-- Handles empty questions array
-- Handles questions with/without citations
-
-#### [NEW] `__tests__/types/types.test.ts`
-TypeScript compile-time validation:
-- Type guard checks for [Project](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/types/index.ts#5-12), [Question](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/types/index.ts#39-46), [Answer](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/types/index.ts#47-58) shapes
+#### [MODIFY] [dashboard/page.tsx](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/app/dashboard/page.tsx)
+- Replace static loading text with animated skeleton cards (pulsing placeholder cards)
+- Ensure spinner actually spins after keyframes fix
 
 ---
 
-### GitHub Actions CI
+### Project Workspace
 
-#### [NEW] `.github/workflows/ci.yml`
-Triggers on `push` and `pull_request` to [main](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/scripts/generate-pdfs.mjs#267-278). Steps:
+#### [MODIFY] [project/[id]/page.tsx](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/app/project/%5Bid%5D/page.tsx)
+- Add a **floating status bar** at top-right during save (e.g., "⏳ Saving version...") with animated spinner
+- Replace plain loading with animated skeleton layout
+- Improve [handleSaveVersion](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/app/project/%5Bid%5D/page.tsx#133-142) error logging to help diagnose failures
 
-| Step | Command |
-|---|---|
-| Checkout | `actions/checkout@v4` |
-| Setup Node 20 | `actions/setup-node@v4` |
-| Install deps | `npm ci` |
-| Lint | `npm run lint` |
-| Type check | `npx tsc --noEmit` |
-| Test | `npm test -- --ci --coverage` |
-| Build | `npm run build` |
+---
 
-Uses `npm ci` for deterministic installs. Caches `node_modules` for speed.
+### Versions API
 
-> [!IMPORTANT]
-> The CI pipeline will **not** have access to env vars (`OPENAI_API_KEY`, Supabase keys) — all external service calls are mocked in tests.
+#### [MODIFY] [api/versions/route.ts](file:///c:/Users/Admin/Desktop/structured-questionnaire-answering-tool/src/app/api/versions/route.ts)
+- Add detailed error logging for each DB step
+- Return error details in response for debugging
+
+---
 
 ## Verification Plan
 
 ### Automated Tests
-- `npm test` — all test suites pass locally
-- `npm run build` — build still succeeds with new devDependencies
+- `npm run lint` — passes clean
+- `npm test` — all 33 tests pass
 
 ### Manual Verification
-- Push to GitHub and confirm the Actions workflow runs green
+- Dashboard: loading state shows animated skeleton cards
+- Project: spinner on Save Version button rotates
+- Save Version: clicking creates a new version (check via History page)
+- During save: UI buttons are disabled + floating status badge visible
+- After save: toast notification "Version saved!" appears
