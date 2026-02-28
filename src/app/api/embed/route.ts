@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { embedDocument } from '@/lib/rag';
 
 // Force Node.js runtime (embedDocument uses Buffer + OpenAI) and allow longer execution
@@ -17,6 +17,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Use service client for DB/storage operations (bypasses RLS in serverless)
+    const db = await createServiceClient();
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const projectId = formData.get('projectId') as string;
@@ -33,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     // Upload file to storage
     const storagePath = `${user.id}/${projectId}/${Date.now()}_${filename}`;
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await db.storage
       .from('references')
       .upload(storagePath, buffer, {
         contentType: file.type,
@@ -47,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create reference document record
-    const { data: document, error: dbError } = await supabase
+    const { data: document, error: dbError } = await db
       .from('reference_documents')
       .insert({
         project_id: projectId,

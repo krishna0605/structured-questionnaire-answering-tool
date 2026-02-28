@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -24,7 +24,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { data: versions } = await supabase
+    // Use service client for DB operations (bypasses RLS in serverless)
+    const db = await createServiceClient();
+    const { data: versions } = await db
       .from('answer_versions')
       .select('*')
       .eq('project_id', projectId)
@@ -60,14 +62,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Use service client for DB operations (bypasses RLS in serverless)
+    const db = await createServiceClient();
+
     // Get all current Q&A data for snapshot
-    const { data: questionnaires } = await supabase
+    const { data: questionnaires } = await db
       .from('questionnaires')
       .select('id')
       .eq('project_id', projectId);
 
     const questionnaireIds = questionnaires?.map((q) => q.id) || [];
-    const { data: questions } = await supabase
+    const { data: questions } = await db
       .from('questions')
       .select('*')
       .in('questionnaire_id', questionnaireIds)
@@ -75,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     const snapshot = [];
     for (const question of questions || []) {
-      const { data: answers } = await supabase
+      const { data: answers } = await db
         .from('answers')
         .select('*')
         .eq('question_id', question.id)
@@ -85,7 +90,7 @@ export async function POST(request: NextRequest) {
       const answer = answers?.[0] || null;
       let citations = [];
       if (answer) {
-        const { data: citData } = await supabase
+        const { data: citData } = await db
           .from('citations')
           .select('*')
           .eq('answer_id', answer.id);
@@ -116,7 +121,7 @@ export async function POST(request: NextRequest) {
     const snapshotHash = (hash >>> 0).toString(36);
 
     // Check if last version has the same hash
-    const { data: lastVersion } = await supabase
+    const { data: lastVersion } = await db
       .from('answer_versions')
       .select('id, version_number, snapshot_hash')
       .eq('project_id', projectId)
@@ -139,7 +144,7 @@ export async function POST(request: NextRequest) {
       ? lastVersion[0].version_number + 1
       : 1;
 
-    const { data: version, error } = await supabase
+    const { data: version, error } = await db
       .from('answer_versions')
       .insert({
         project_id: projectId,

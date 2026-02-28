@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { parsePDF, parseXLSX, extractQuestionsFromText } from '@/lib/parser';
 
 // Force Node.js runtime (pdf-parse/xlsx need it) and allow file uploads up to 10MB
@@ -16,6 +16,9 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Use service client for DB/storage operations (bypasses RLS in serverless)
+    const db = await createServiceClient();
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -34,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     // Upload file to storage
     const storagePath = `${user.id}/${projectId}/${Date.now()}_${filename}`;
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await db.storage
       .from('questionnaires')
       .upload(storagePath, buffer, {
         contentType: file.type,
@@ -48,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create questionnaire record
-    const { data: questionnaire, error: dbError } = await supabase
+    const { data: questionnaire, error: dbError } = await db
       .from('questionnaires')
       .insert({
         project_id: projectId,
@@ -88,11 +91,11 @@ export async function POST(request: NextRequest) {
         original_context: q.original_context,
       }));
 
-      await supabase.from('questions').insert(questionsToInsert);
+      await db.from('questions').insert(questionsToInsert);
     }
 
     // Update questionnaire status
-    await supabase
+    await db
       .from('questionnaires')
       .update({ status: 'parsed' })
       .eq('id', questionnaire.id);
