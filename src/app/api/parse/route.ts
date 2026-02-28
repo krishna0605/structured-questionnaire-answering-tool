@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { parsePDF, parseXLSX, extractQuestionsFromText } from '@/lib/parser';
 
+// Force Node.js runtime (pdf-parse/xlsx need it) and allow file uploads up to 10MB
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();

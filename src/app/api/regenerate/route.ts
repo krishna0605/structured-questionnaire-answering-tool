@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { generateRAGAnswer } from '@/lib/rag';
 
+export const runtime = 'nodejs';
+export const maxDuration = 120;
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { embedDocument } from '@/lib/rag';
 
+// Force Node.js runtime (embedDocument uses Buffer + OpenAI) and allow longer execution
+export const runtime = 'nodejs';
+export const maxDuration = 120;
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
