@@ -115,40 +115,18 @@ export async function POST(request: NextRequest) {
     // Check if last version has the same hash
     const { data: lastVersion } = await supabase
       .from('answer_versions')
-      .select('id, version_number, snapshot_hash, snapshot')
+      .select('id, version_number, snapshot_hash')
       .eq('project_id', projectId)
       .order('version_number', { ascending: false })
       .limit(1);
 
-    if (lastVersion && lastVersion.length > 0) {
-      let existingHash = lastVersion[0].snapshot_hash;
+    console.log('[SaveVersion] Current hash:', snapshotHash);
+    console.log('[SaveVersion] Last version:', lastVersion?.[0]?.version_number, 'hash:', lastVersion?.[0]?.snapshot_hash);
 
-      // Backfill: if old version has no hash, compute it from stored snapshot
-      if (!existingHash && lastVersion[0].snapshot) {
-        const oldSnapshot = typeof lastVersion[0].snapshot === 'string'
-          ? JSON.parse(lastVersion[0].snapshot)
-          : lastVersion[0].snapshot;
-        const oldQuestions = oldSnapshot?.questions || (Array.isArray(oldSnapshot) ? oldSnapshot : []);
-        const oldContent = oldQuestions.map((s: { question?: { id?: string; question_text?: string }; answer?: { answer_text?: string; confidence_score?: number | null; is_not_found?: boolean; is_edited?: boolean } }) => ({
-          qid: s.question?.id,
-          qt: s.question?.question_text,
-          at: s.answer?.answer_text || '',
-          cs: s.answer?.confidence_score ?? null,
-          nf: s.answer?.is_not_found ?? false,
-          ed: s.answer?.is_edited ?? false,
-        }));
-        const oldHashInput = JSON.stringify(oldContent);
-        let oldHash = 2166136261;
-        for (let i = 0; i < oldHashInput.length; i++) {
-          oldHash ^= oldHashInput.charCodeAt(i);
-          oldHash = Math.imul(oldHash, 16777619);
-        }
-        existingHash = (oldHash >>> 0).toString(36);
-        // Backfill the hash in DB for future comparisons
-        await supabase.from('answer_versions').update({ snapshot_hash: existingHash }).eq('id', lastVersion[0].id);
-      }
-
-      if (existingHash === snapshotHash) {
+    // Only compare if the last version has a hash (new versions always do)
+    if (lastVersion && lastVersion.length > 0 && lastVersion[0].snapshot_hash) {
+      if (lastVersion[0].snapshot_hash === snapshotHash) {
+        console.log('[SaveVersion] No changes detected — skipping save');
         return NextResponse.json({ noChanges: true });
       }
     }
