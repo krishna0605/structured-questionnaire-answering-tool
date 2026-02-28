@@ -4,7 +4,7 @@
 
 [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-questionnaire--answering--tool.vercel.app-7c3aed?style=for-the-badge)](https://questionnaire-answering-tool.vercel.app)
 [![GitHub](https://img.shields.io/badge/GitHub-krishna0605-181717?style=for-the-badge&logo=github)](https://github.com/krishna0605)
-[![Portfolio](https://img.shields.io/badge/Portfolio-krishna0605.github.io-6366f1?style=for-the-badge)](https://krishna0605.github.io)
+[![Portfolio](https://img.shields.io/badge/Portfolio-creative--engineer.dev-6366f1?style=for-the-badge)](https://creative-engineer.dev)
 
 ---
 
@@ -544,7 +544,7 @@ Automatically save changes as the user edits answers, with real-time conflict re
 | **🚀 Live Application** | [questionnaire-answering-tool.vercel.app](https://questionnaire-answering-tool.vercel.app) |
 | **📦 GitHub Repository** | [github.com/krishna0605/structured-questionnaire-answering-tool](https://github.com/krishna0605/structured-questionnaire-answering-tool) |
 | **👤 GitHub Profile** | [github.com/krishna0605](https://github.com/krishna0605) |
-| **🌐 Portfolio** | [krishna0605.github.io](https://krishna0605.github.io) |
+| **🌐 Portfolio** | [creative-engineer.dev](https://creative-engineer.dev) |
 
 ---
 
