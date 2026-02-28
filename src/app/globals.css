@@ -143,7 +143,14 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    background: #0a0a0f;
+    overscroll-behavior: none;
+  }
   body {
     @apply bg-background text-foreground;
+    background: #0a0a0f;
+    min-height: 100vh;
+    overscroll-behavior-y: none;
   }
 }
