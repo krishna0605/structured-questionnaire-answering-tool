@@ -6,11 +6,6 @@ import {
   HeadingLevel,
   AlignmentType,
   BorderStyle,
-  Table,
-  TableRow,
-  TableCell,
-  WidthType,
-  ShadingType,
 } from 'docx';
 import type { QuestionWithAnswer } from '@/types';
 

@@ -26,6 +26,7 @@ export default function HistoryPage() {
   const [compareVersions, setCompareVersions] = useState<[VersionSnapshot | null, VersionSnapshot | null]>([null, null]);
   const [mode, setMode] = useState<'view' | 'compare'>('view');
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   const loadVersions = useCallback(async () => {
     setLoading(true);
     const { data } = await supabase.from('answer_versions').select('*').eq('project_id', projectId).order('saved_at', { ascending: false });
@@ -41,6 +42,7 @@ export default function HistoryPage() {
   }, [projectId]);
 
   useEffect(() => { loadVersions(); }, [loadVersions]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const cardStyle: React.CSSProperties = { background: '#16161f', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px' };
 

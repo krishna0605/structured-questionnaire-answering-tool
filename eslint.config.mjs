@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Auto-generated Aceternity UI components (third-party code):
+    "src/components/ui/**",
   ]),
 ]);
 

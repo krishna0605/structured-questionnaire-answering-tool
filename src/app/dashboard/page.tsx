@@ -73,11 +73,6 @@ export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  useEffect(() => {
-    loadProjects();
-    loadUser();
-  }, []);
-
   const loadUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) setUserEmail(user.email || '');
@@ -89,6 +84,13 @@ export default function DashboardPage() {
     setProjects(data || []);
     setLoading(false);
   };
+
+  /* eslint-disable react-hooks/exhaustive-deps */
+  useEffect(() => {
+    loadProjects();
+    loadUser();
+  }, []);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const createProject = async (e: React.FormEvent) => {
     e.preventDefault();

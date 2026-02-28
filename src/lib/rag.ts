@@ -12,7 +12,7 @@ export async function embedDocument(
   storageBuffer: Buffer,
   filename: string
 ): Promise<void> {
-  const supabase = createServiceClient();
+  const supabase = await createServiceClient();
 
   // Update status to embedding
   await supabase
@@ -67,7 +67,7 @@ export async function retrieveRelevantChunks(
   projectId: string,
   topK: number = 5
 ): Promise<(DocumentChunk & { source_filename: string; similarity: number })[]> {
-  const supabase = createServiceClient();
+  const supabase = await createServiceClient();
 
   // Generate embedding for the question
   const questionEmbedding = await generateEmbedding(questionText);
@@ -141,7 +141,7 @@ export async function generateRAGAnswer(
   // Compile context from chunks
   const context = relevantChunks
     .map(
-      (c, i) =>
+      (c) =>
         `[Source: ${c.source_filename}]\n${c.content}`
     )
     .join('\n\n---\n\n');

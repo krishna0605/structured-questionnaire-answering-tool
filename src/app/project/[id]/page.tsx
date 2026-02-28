@@ -2,17 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import type { Project, Question, Answer, Citation, CoverageSummary } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, UploadCloud, FileText, Database, Zap, RefreshCw,
   Save, History, Download, CheckCircle2, AlertCircle, Clock, ChevronDown,
-  Edit3, X, Loader2, ArrowLeft, FileCheck
+  Edit3, Loader2, ArrowLeft, FileCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
 import { MultiStepLoader } from '@/components/ui/multi-step-loader';
 
 interface QuestionWithAnswer {
@@ -32,7 +31,6 @@ const GENERATION_STEPS = [
 export default function ProjectPage() {
   const params = useParams();
   const projectId = params.id as string;
-  const router = useRouter();
   const supabase = createClient();
 
   const [project, setProject] = useState<Project | null>(null);
@@ -51,6 +49,7 @@ export default function ProjectPage() {
 
   const isUIFrozen = savingVersion || generating || exporting || uploading;
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   const loadProject = useCallback(async () => {
     const { data } = await supabase.from('projects').select('*').eq('id', projectId).single();
     if (data) setProject(data);
@@ -109,6 +108,7 @@ export default function ProjectPage() {
   }, [projectId]);
 
   useEffect(() => { loadData(); }, [loadData]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   /* ── Upload Handlers ── */
   const handleQuestionnaireUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -205,12 +205,12 @@ export default function ProjectPage() {
   };
 
   const toggleEvidence = (qid: string) => {
-    setExpandedEvidence((p) => { const n = new Set(p); n.has(qid) ? n.delete(qid) : n.add(qid); return n; });
+    setExpandedEvidence((p) => { const n = new Set(p); if (n.has(qid)) { n.delete(qid); } else { n.add(qid); } return n; });
   };
 
   const toggleRegenSelection = (qid: string) => {
     if (isUIFrozen) return;
-    setSelectedForRegen((p) => { const n = new Set(p); n.has(qid) ? n.delete(qid) : n.add(qid); return n; });
+    setSelectedForRegen((p) => { const n = new Set(p); if (n.has(qid)) { n.delete(qid); } else { n.add(qid); } return n; });
   };
 
   const getConfColor = (score: number | null) => {
