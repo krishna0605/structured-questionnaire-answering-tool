@@ -51,7 +51,7 @@ export function Sidebar({ userEmail, onLogout, onNewProject }: SidebarProps) {
         </div>
         {!collapsed && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: '#1e293b', letterSpacing: '-0.02em' }}>ShieldSync</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: '#1e293b', letterSpacing: '-0.02em' }}>questionnaire-answering-tool</div>
             <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>Compliance Suite</div>
           </motion.div>
         )}

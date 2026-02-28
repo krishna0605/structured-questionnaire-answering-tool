@@ -14,7 +14,7 @@ export async function generateDocx(
   questions: QuestionWithAnswer[]
 ): Promise<Buffer> {
   const doc = new Document({
-    creator: 'ShieldSync Questionnaire Tool',
+    creator: 'questionnaire-answering-tool',
     title: `${projectName} - Questionnaire Answers`,
     description: 'AI-generated answers with citations',
     sections: [

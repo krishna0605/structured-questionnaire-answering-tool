@@ -81,7 +81,7 @@ export default function LoginPage() {
               transition={{ delay: 0.6 }}
               style={{ fontSize: '15px', color: '#6b6b80', marginTop: '8px' }}
             >
-              Sign in to your ShieldSync account
+              Sign in to your questionnaire-answering-tool account
             </motion.p>
           </div>
 

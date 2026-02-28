@@ -176,7 +176,7 @@ export default function DashboardPage() {
           >
             <Shield style={{ width: '20px', height: '20px', color: 'white' }} />
           </motion.div>
-          <span style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', color: 'white' }}>ShieldSync</span>
+          <span style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', color: 'white' }}>questionnaire-answering-tool</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <span style={{ fontSize: '14px', color: '#6b6b80' }}>{userEmail}</span>
