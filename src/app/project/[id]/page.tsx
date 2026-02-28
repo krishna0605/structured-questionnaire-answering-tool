@@ -46,6 +46,9 @@ export default function ProjectPage() {
   const [editText, setEditText] = useState('');
   const [savingVersion, setSavingVersion] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showExportPicker, setShowExportPicker] = useState(false);
+  const [exportVersions, setExportVersions] = useState<{ id: string; label: string; created_at: string }[]>([]);
+  const [selectedExportVersion, setSelectedExportVersion] = useState<string>('');
 
   const isUIFrozen = savingVersion || generating || exporting || uploading;
 
@@ -212,11 +215,27 @@ export default function ProjectPage() {
     setSavingVersion(false);
   };
 
-  const handleExport = async () => {
+  const openExportPicker = async () => {
+    // Fetch saved versions for the picker
+    try {
+      const res = await fetch(`/api/versions?projectId=${projectId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setExportVersions(data.versions || []);
+      }
+    } catch { /* ignore, picker will still show "Current" */ }
+    setSelectedExportVersion('');
+    setShowExportPicker(true);
+  };
+
+  const handleExport = async (versionId?: string) => {
+    setShowExportPicker(false);
     setExporting(true);
     const tid = toast.loading('Preparing DOCX export...');
     try {
-      const res = await fetch('/api/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId }) });
+      const body: { projectId: string; versionId?: string } = { projectId };
+      if (versionId) body.versionId = versionId;
+      const res = await fetch('/api/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (res.ok) {
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
@@ -298,6 +317,76 @@ export default function ProjectPage() {
       {/* Multi-Step Loader Overlay */}
       <MultiStepLoader loadingStates={GENERATION_STEPS} loading={generating} duration={6000} />
 
+      {/* Export Version Picker Modal */}
+      <AnimatePresence>
+        {showExportPicker && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowExportPicker(false)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 200,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: '420px', padding: '28px', borderRadius: '16px',
+                background: '#16161f', border: '1px solid rgba(255,255,255,0.08)',
+                boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
+              }}
+            >
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'white', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Download style={{ width: '20px', height: '20px', color: '#a78bfa' }} /> Export DOCX
+              </h3>
+              <p style={{ fontSize: '13px', color: '#6b6b80', marginBottom: '20px' }}>Choose which version to export</p>
+
+              <select
+                value={selectedExportVersion}
+                onChange={(e) => setSelectedExportVersion(e.target.value)}
+                style={{
+                  width: '100%', padding: '12px 16px', borderRadius: '10px', fontSize: '14px',
+                  outline: 'none', background: '#0f0f17', border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f0f5', fontFamily: 'inherit', marginBottom: '20px', transition: 'border-color 0.2s',
+                }}
+                onFocus={e => (e.target.style.borderColor = '#7c3aed')}
+                onBlur={e => (e.target.style.borderColor = 'rgba(255,255,255,0.1)')}
+              >
+                <option value="">Current (Live Data)</option>
+                {exportVersions.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.label} — {new Date(v.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </option>
+                ))}
+              </select>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <motion.button
+                  onClick={() => setShowExportPicker(false)}
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                  style={{ padding: '10px 20px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#a0a0b0', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+                >Cancel</motion.button>
+                <motion.button
+                  onClick={() => handleExport(selectedExportVersion || undefined)}
+                  whileHover={{ scale: 1.05, boxShadow: '0 4px 20px rgba(124,58,237,0.4)' }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{ padding: '10px 20px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #7c3aed, #6366f1)', color: 'white', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <Download style={{ width: '16px', height: '16px' }} /> Export
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Floating Status Bar */}
       <AnimatePresence>
         {isUIFrozen && !generating && (
@@ -354,7 +443,7 @@ export default function ProjectPage() {
             <Link href={`/project/${projectId}/history`} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#a0a0b0', fontSize: '13px', fontWeight: 600, textDecoration: 'none', fontFamily: 'inherit' }}>
               <History style={{ width: '14px', height: '14px' }} /> History
             </Link>
-            <motion.button onClick={handleExport} disabled={isUIFrozen} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            <motion.button onClick={openExportPicker} disabled={isUIFrozen} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'linear-gradient(135deg, #7c3aed, #6366f1)', color: 'white', fontSize: '13px', fontWeight: 600, cursor: isUIFrozen ? 'not-allowed' : 'pointer', opacity: isUIFrozen ? 0.5 : 1, fontFamily: 'inherit' }}>
               {exporting ? <Loader2 style={{ width: '14px', height: '14px', animation: 'spin 1s linear infinite' }} /> : <Download style={{ width: '14px', height: '14px' }} />}
               Export DOCX

@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Shield, History, GitCompare, Loader2, Calendar } from 'lucide-react';
+import { ArrowLeft, Shield, History, GitCompare, Loader2, Calendar, Download } from 'lucide-react';
 import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
 
 type VersionSnapshot = {
@@ -25,6 +25,7 @@ export default function HistoryPage() {
   const [selectedVersion, setSelectedVersion] = useState<VersionSnapshot | null>(null);
   const [compareVersions, setCompareVersions] = useState<[VersionSnapshot | null, VersionSnapshot | null]>([null, null]);
   const [mode, setMode] = useState<'view' | 'compare'>('view');
+  const [exporting, setExporting] = useState(false);
 
   /* eslint-disable react-hooks/exhaustive-deps */
   const loadVersions = useCallback(async () => {
@@ -65,6 +66,33 @@ export default function HistoryPage() {
   /* eslint-enable react-hooks/exhaustive-deps */
 
   const cardStyle: React.CSSProperties = { background: '#16161f', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px' };
+
+  const handleExportVersion = async (versionId: string) => {
+    setExporting(true);
+    const tid = (await import('react-hot-toast')).default.loading('Preparing DOCX export...');
+    try {
+      const res = await fetch('/api/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, versionId }),
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `version_export.docx`;
+        a.click();
+        URL.revokeObjectURL(url);
+        (await import('react-hot-toast')).default.success('Export downloaded!', { id: tid });
+      } else {
+        (await import('react-hot-toast')).default.error('Export failed', { id: tid });
+      }
+    } catch {
+      (await import('react-hot-toast')).default.error('Network error', { id: tid });
+    }
+    setExporting(false);
+  };
 
   const getConfColor = (score: number | null) => {
     if (score === null) return '#6b6b80';
@@ -226,9 +254,29 @@ export default function HistoryPage() {
                     transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                     style={{ ...cardStyle, padding: '28px' }}
                   >
-                    <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'white', marginBottom: '20px' }}>
-                      {selectedVersion.label || 'Version Snapshot'} — {selectedVersion.snapshot?.length || 0} answers
-                    </h3>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                      <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'white' }}>
+                        {selectedVersion.label || 'Version Snapshot'} — {selectedVersion.snapshot?.length || 0} answers
+                      </h3>
+                      <motion.button
+                        onClick={() => handleExportVersion(selectedVersion.id)}
+                        disabled={exporting}
+                        whileHover={{ scale: 1.05, boxShadow: '0 4px 20px rgba(124,58,237,0.4)' }}
+                        whileTap={{ scale: 0.95 }}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '6px',
+                          padding: '8px 16px', borderRadius: '8px', border: 'none',
+                          background: 'linear-gradient(135deg, #7c3aed, #6366f1)', color: 'white',
+                          fontSize: '13px', fontWeight: 600, cursor: exporting ? 'not-allowed' : 'pointer',
+                          opacity: exporting ? 0.5 : 1, fontFamily: 'inherit',
+                        }}
+                      >
+                        {exporting
+                          ? <Loader2 style={{ width: '14px', height: '14px', animation: 'spin 1s linear infinite' }} />
+                          : <Download style={{ width: '14px', height: '14px' }} />}
+                        Export DOCX
+                      </motion.button>
+                    </div>
                     <motion.div variants={container} initial="hidden" animate="show" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {selectedVersion.snapshot?.map((snapItem, i) => (
                         <motion.div key={i} variants={item}
