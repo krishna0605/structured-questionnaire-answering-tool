@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import type { Project } from '@/types';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import {
-  Shield, FolderPlus, FileText, ChevronRight, Plus, X, Loader2, LogOut,
+  Shield, FolderPlus, FileText, ChevronRight, Plus, X, Loader2, LogOut, Trash2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
@@ -70,6 +70,8 @@ export default function DashboardPage() {
   const [newDesc, setNewDesc] = useState('');
   const [creating, setCreating] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -119,6 +121,29 @@ export default function DashboardPage() {
     toast.success('Logged out');
     router.push('/login');
     router.refresh();
+  };
+
+  const handleDeleteProject = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    const tid = toast.loading('Deleting project...');
+    try {
+      const res = await fetch('/api/projects/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: deleteTarget.id }),
+      });
+      if (res.ok) {
+        setProjects((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+        toast.success('Project deleted', { id: tid });
+      } else {
+        toast.error('Failed to delete project', { id: tid });
+      }
+    } catch {
+      toast.error('Network error', { id: tid });
+    }
+    setDeleting(false);
+    setDeleteTarget(null);
   };
 
   const cardBase: React.CSSProperties = {
@@ -369,6 +394,21 @@ export default function DashboardPage() {
                       <FileText style={{ width: '22px', height: '22px', color: '#a78bfa' }} />
                     </div>
                     <ChevronRight style={{ width: '20px', height: '20px', color: '#6b6b80' }} />
+                    <motion.button
+                      onClick={(e) => { e.stopPropagation(); setDeleteTarget(project); }}
+                      whileHover={{ scale: 1.15, backgroundColor: 'rgba(239,68,68,0.15)' }}
+                      whileTap={{ scale: 0.9 }}
+                      style={{
+                        width: '32px', height: '32px', borderRadius: '8px', border: 'none',
+                        background: 'transparent', color: '#6b6b80', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'color 0.2s',
+                      }}
+                      onMouseOver={(e) => (e.currentTarget.style.color = '#ef4444')}
+                      onMouseOut={(e) => (e.currentTarget.style.color = '#6b6b80')}
+                    >
+                      <Trash2 style={{ width: '16px', height: '16px' }} />
+                    </motion.button>
                   </div>
                   <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'white', marginBottom: '6px', position: 'relative', zIndex: 10 }}>{project.name}</h3>
                   {project.description && (
@@ -390,6 +430,66 @@ export default function DashboardPage() {
           </motion.div>
         )}
       </main>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteTarget && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => !deleting && setDeleteTarget(null)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 200,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: '420px', padding: '28px', borderRadius: '16px',
+                background: '#16161f', border: '1px solid rgba(255,255,255,0.08)',
+                boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
+              }}
+            >
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'white', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Trash2 style={{ width: '20px', height: '20px', color: '#ef4444' }} /> Delete Project
+              </h3>
+              <p style={{ fontSize: '14px', color: '#a0a0b0', marginBottom: '8px', lineHeight: 1.6 }}>
+                Are you sure you want to delete <strong style={{ color: 'white' }}>{deleteTarget.name}</strong>?
+              </p>
+              <p style={{ fontSize: '13px', color: '#ef4444', marginBottom: '24px' }}>
+                This will permanently remove all questions, answers, versions, and documents.
+              </p>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <motion.button
+                  onClick={() => setDeleteTarget(null)}
+                  disabled={deleting}
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                  style={{ padding: '10px 20px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#a0a0b0', fontSize: '14px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+                >Cancel</motion.button>
+                <motion.button
+                  onClick={handleDeleteProject}
+                  disabled={deleting}
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                  style={{
+                    padding: '10px 20px', borderRadius: '10px', border: 'none',
+                    background: '#ef4444', color: 'white', fontSize: '14px', fontWeight: 700,
+                    cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1,
+                    fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px',
+                  }}
+                >
+                  {deleting ? <Loader2 style={{ width: '16px', height: '16px', animation: 'spin 1s linear infinite' }} /> : <Trash2 style={{ width: '16px', height: '16px' }} />}
+                  Delete
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

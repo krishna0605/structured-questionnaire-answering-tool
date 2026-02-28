@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, UploadCloud, FileText, Database, Zap, RefreshCw,
   Save, History, Download, CheckCircle2, AlertCircle, Clock, ChevronDown,
-  Edit3, Loader2, ArrowLeft, FileCheck
+  Edit3, Loader2, ArrowLeft, FileCheck, X, Trash2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { MultiStepLoader } from '@/components/ui/multi-step-loader';
@@ -252,6 +252,52 @@ export default function ProjectPage() {
 
   const toggleEvidence = (qid: string) => {
     setExpandedEvidence((p) => { const n = new Set(p); if (n.has(qid)) { n.delete(qid); } else { n.add(qid); } return n; });
+  };
+
+  const removeDoc = async (docId: string) => {
+    const tid = toast.loading('Removing document...');
+    try {
+      const res = await fetch('/api/documents/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentId: docId }),
+      });
+      if (res.ok) {
+        setRefDocs((prev) => prev.filter((d) => d.id !== docId));
+        toast.success('Document removed', { id: tid });
+      } else {
+        toast.error('Failed to remove document', { id: tid });
+      }
+    } catch {
+      toast.error('Network error', { id: tid });
+    }
+  };
+
+  const removeQuestionnaire = async () => {
+    const tid = toast.loading('Removing questionnaire...');
+    try {
+      // Find questionnaire IDs for this project
+      const { data: questionnaires } = await supabase
+        .from('questionnaires')
+        .select('id')
+        .eq('project_id', projectId);
+      if (!questionnaires || questionnaires.length === 0) {
+        toast.error('No questionnaire found', { id: tid });
+        return;
+      }
+      // Delete each questionnaire
+      for (const q of questionnaires) {
+        await fetch('/api/questionnaires/delete', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questionnaireId: q.id }),
+        });
+      }
+      setQuestionsWithAnswers([]);
+      toast.success('Questionnaire removed', { id: tid });
+    } catch {
+      toast.error('Network error', { id: tid });
+    }
   };
 
   const toggleRegenSelection = (qid: string) => {
@@ -510,6 +556,22 @@ export default function ProjectPage() {
                 background: 'rgba(62,207,142,0.1)', color: '#3ecf8e',
               }}>
                 <CheckCircle2 style={{ width: '16px', height: '16px' }} /> {questionsWithAnswers.length} questions loaded
+                {!hasAnswers && (
+                  <motion.button
+                    onClick={removeQuestionnaire}
+                    whileHover={{ scale: 1.15, backgroundColor: 'rgba(239,68,68,0.15)' }}
+                    whileTap={{ scale: 0.9 }}
+                    style={{
+                      marginLeft: 'auto', width: '22px', height: '22px', borderRadius: '6px', border: 'none',
+                      background: 'transparent', color: '#6b6b80', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}
+                    onMouseOver={(e) => (e.currentTarget.style.color = '#ef4444')}
+                    onMouseOut={(e) => (e.currentTarget.style.color = '#6b6b80')}
+                  >
+                    <X style={{ width: '14px', height: '14px' }} />
+                  </motion.button>
+                )}
               </motion.div>
             )}
           </motion.div>
@@ -544,6 +606,22 @@ export default function ProjectPage() {
                       ? <CheckCircle2 style={{ width: '14px', height: '14px', color: '#3ecf8e' }} />
                       : <Clock style={{ width: '14px', height: '14px', color: '#f59e0b' }} />}
                     {doc.filename.length > 20 ? doc.filename.slice(0, 18) + '...' : doc.filename}
+                    {!hasAnswers && (
+                      <motion.button
+                        onClick={() => removeDoc(doc.id)}
+                        whileHover={{ scale: 1.2 }}
+                        whileTap={{ scale: 0.85 }}
+                        style={{
+                          marginLeft: '2px', width: '18px', height: '18px', borderRadius: '4px', border: 'none',
+                          background: 'transparent', color: '#6b6b80', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+                        }}
+                        onMouseOver={(e) => (e.currentTarget.style.color = '#ef4444')}
+                        onMouseOut={(e) => (e.currentTarget.style.color = '#6b6b80')}
+                      >
+                        <X style={{ width: '12px', height: '12px' }} />
+                      </motion.button>
+                    )}
                   </motion.span>
                 ))}
               </div>
