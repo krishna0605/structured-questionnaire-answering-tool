@@ -433,26 +433,6 @@ export default function ProjectPage() {
         )}
       </AnimatePresence>
 
-      {/* Floating Status Bar */}
-      <AnimatePresence>
-        {isUIFrozen && !generating && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            style={{
-              position: 'fixed', top: '16px', right: '24px', zIndex: 100,
-              display: 'flex', alignItems: 'center', gap: '10px',
-              padding: '10px 20px', borderRadius: '10px',
-              background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)',
-              backdropFilter: 'blur(12px)', color: '#d4b5ff', fontSize: '13px', fontWeight: 600,
-            }}
-          >
-            <Loader2 style={{ width: '16px', height: '16px', animation: 'spin 1s linear infinite' }} />
-            {savingVersion ? 'Saving version...' : exporting ? 'Exporting DOCX...' : uploading ? 'Uploading...' : 'Processing...'}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Navbar */}
       <motion.nav
