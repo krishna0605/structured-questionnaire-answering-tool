@@ -92,6 +92,38 @@ export async function POST(request: NextRequest) {
       snapshot.push({ question, answer, citations });
     }
 
+    // Compute a content hash for change detection
+    // Extract only the meaningful data (answer texts, confidence, edit flags) for hashing
+    const contentForHash = snapshot.map((s) => ({
+      qid: s.question?.id,
+      qt: s.question?.question_text,
+      at: s.answer?.answer_text || '',
+      cs: s.answer?.confidence_score ?? null,
+      nf: s.answer?.is_not_found ?? false,
+      ed: s.answer?.is_edited ?? false,
+    }));
+    const hashInput = JSON.stringify(contentForHash);
+
+    // Simple string hash (FNV-1a inspired) — fast, no crypto needed
+    let hash = 2166136261;
+    for (let i = 0; i < hashInput.length; i++) {
+      hash ^= hashInput.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    const snapshotHash = (hash >>> 0).toString(36);
+
+    // Check if last version has the same hash
+    const { data: lastVersion } = await supabase
+      .from('answer_versions')
+      .select('snapshot_hash')
+      .eq('project_id', projectId)
+      .order('version_number', { ascending: false })
+      .limit(1);
+
+    if (lastVersion && lastVersion.length > 0 && lastVersion[0].snapshot_hash === snapshotHash) {
+      return NextResponse.json({ noChanges: true });
+    }
+
     // Get next version number
     const { data: maxVersion } = await supabase
       .from('answer_versions')
@@ -111,6 +143,7 @@ export async function POST(request: NextRequest) {
         version_number: nextVersion,
         label: label || `Version ${nextVersion}`,
         snapshot: { questions: snapshot, generated_at: new Date().toISOString() },
+        snapshot_hash: snapshotHash,
       })
       .select()
       .single();

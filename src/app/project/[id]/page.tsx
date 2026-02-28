@@ -50,60 +50,72 @@ export default function ProjectPage() {
   const isUIFrozen = savingVersion || generating || exporting || uploading;
 
   /* eslint-disable react-hooks/exhaustive-deps */
-  const loadProject = useCallback(async () => {
-    const { data } = await supabase.from('projects').select('*').eq('id', projectId).single();
-    if (data) setProject(data);
-  }, [projectId]);
-
   const loadData = useCallback(async () => {
     setLoading(true);
-    await loadProject();
 
-    const { data: docs } = await supabase
-      .from('reference_documents')
-      .select('id, filename, status')
-      .eq('project_id', projectId);
-    setRefDocs(docs || []);
+    // Round 1: Fetch project, docs, questionnaires in PARALLEL
+    const [projectRes, docsRes, questRes] = await Promise.all([
+      supabase.from('projects').select('*').eq('id', projectId).single(),
+      supabase.from('reference_documents').select('id, filename, status').eq('project_id', projectId),
+      supabase.from('questionnaires').select('id').eq('project_id', projectId),
+    ]);
 
-    const { data: questionnaires } = await supabase
-      .from('questionnaires')
-      .select('id')
-      .eq('project_id', projectId);
+    if (projectRes.data) setProject(projectRes.data);
+    setRefDocs(docsRes.data || []);
 
-    if (questionnaires && questionnaires.length > 0) {
-      const qIds = questionnaires.map((q: { id: string }) => q.id);
-      const { data: questions } = await supabase
-        .from('questions')
-        .select('*')
-        .in('questionnaire_id', qIds)
-        .order('question_number');
+    const qIds = (questRes.data || []).map((q: { id: string }) => q.id);
+    if (qIds.length === 0) { setLoading(false); return; }
 
-      if (questions) {
-        const qwa: QuestionWithAnswer[] = [];
-        for (const q of questions) {
-          const { data: answers } = await supabase
-            .from('answers')
-            .select('*')
-            .eq('question_id', q.id)
-            .order('version', { ascending: false })
-            .limit(1);
-          const answer = answers && answers.length > 0 ? answers[0] : null;
-          let citations: Citation[] = [];
-          if (answer) {
-            const { data: cits } = await supabase.from('citations').select('*').eq('answer_id', answer.id);
-            citations = cits || [];
-          }
-          qwa.push({ question: q, answer, citations });
-        }
-        setQuestionsWithAnswers(qwa);
-        const total = qwa.length;
-        const answered = qwa.filter((q) => q.answer && !q.answer.is_not_found).length;
-        const notFound = qwa.filter((q) => q.answer?.is_not_found).length;
-        const confidences = qwa.filter((q) => q.answer?.confidence_score != null).map((q) => q.answer!.confidence_score!);
-        const avgConf = confidences.length > 0 ? confidences.reduce((a, b) => a + b, 0) / confidences.length : 0;
-        setCoverage({ total_questions: total, answered, not_found: notFound, avg_confidence: avgConf });
+    // Round 2: Fetch all questions for this project
+    const { data: questions } = await supabase
+      .from('questions')
+      .select('*')
+      .in('questionnaire_id', qIds)
+      .order('question_number');
+
+    if (!questions || questions.length === 0) { setLoading(false); return; }
+
+    // Round 3: Batch-fetch ALL answers + ALL citations in PARALLEL
+    const questionIds = questions.map((q: { id: string }) => q.id);
+    const [answersRes] = await Promise.all([
+      supabase.from('answers').select('*').in('question_id', questionIds).order('version', { ascending: false }),
+    ]);
+
+    const allAnswers = answersRes.data || [];
+
+    // Client-side: pick latest answer per question
+    const answersByQuestion = new Map<string, typeof allAnswers[0]>();
+    for (const a of allAnswers) {
+      if (!answersByQuestion.has(a.question_id)) {
+        answersByQuestion.set(a.question_id, a); // first = latest (ordered desc)
       }
     }
+
+    // Batch-fetch citations for ALL answers at once
+    const answerIds = Array.from(answersByQuestion.values()).map(a => a.id);
+    const citationsByAnswer = new Map<string, Citation[]>();
+    if (answerIds.length > 0) {
+      const { data: allCitations } = await supabase.from('citations').select('*').in('answer_id', answerIds);
+      for (const c of allCitations || []) {
+        if (!citationsByAnswer.has(c.answer_id)) citationsByAnswer.set(c.answer_id, []);
+        citationsByAnswer.get(c.answer_id)!.push(c);
+      }
+    }
+
+    // Assemble Q&A with client-side join
+    const qwa: QuestionWithAnswer[] = questions.map((q) => {
+      const answer = answersByQuestion.get(q.id) || null;
+      const citations = answer ? (citationsByAnswer.get(answer.id) || []) : [];
+      return { question: q as Question, answer, citations };
+    });
+
+    setQuestionsWithAnswers(qwa);
+    const total = qwa.length;
+    const answered = qwa.filter((q) => q.answer && !q.answer.is_not_found).length;
+    const notFound = qwa.filter((q) => q.answer?.is_not_found).length;
+    const confidences = qwa.filter((q) => q.answer?.confidence_score != null).map((q) => q.answer!.confidence_score!);
+    const avgConf = confidences.length > 0 ? confidences.reduce((a, b) => a + b, 0) / confidences.length : 0;
+    setCoverage({ total_questions: total, answered, not_found: notFound, avg_confidence: avgConf });
     setLoading(false);
   }, [projectId]);
 
@@ -176,11 +188,17 @@ export default function ProjectPage() {
 
   const handleSaveVersion = async () => {
     setSavingVersion(true);
-    const tid = toast.loading('Saving version snapshot...');
+    const tid = toast.loading('Checking for changes...');
     try {
       const res = await fetch('/api/versions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId }) });
-      if (res.ok) toast.success('Version saved!', { id: tid });
-      else toast.error('Save failed', { id: tid });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.noChanges) {
+          toast('No changes to save — everything is up to date', { id: tid, icon: 'ℹ️', duration: 3000 });
+        } else {
+          toast.success('Version saved!', { id: tid });
+        }
+      } else toast.error('Save failed', { id: tid });
     } catch { toast.error('Network error', { id: tid }); }
     setSavingVersion(false);
   };
