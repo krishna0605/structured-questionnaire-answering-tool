@@ -1,0 +1,43 @@
+ShieldSync Inc. — Compliance Certifications Summary
+Version 1.4 | Last Updated: November 2024
+
+1. CURRENT CERTIFICATIONS
+
+| Certification | Status | Issued By | Valid Until | Audit Frequency |
+|---|---|---|---|---|
+| SOC 2 Type II | Active | Deloitte | March 2025 | Annual |
+| ISO 27001:2022 | Active | BSI | June 2025 | Annual (surveillance), Full audit every 3 years |
+| GDPR Compliance | Active | Internal DPO + External Assessment | Ongoing | Continuous monitoring, Annual external assessment |
+| CCPA Compliance | Active | Internal Legal Team | Ongoing | Annual review |
+| CSA STAR Level 2 | Active | BSI | August 2025 | Annual |
+
+2. SOC 2 TYPE II DETAILS
+
+Our SOC 2 Type II audit covers all five Trust Services Criteria:
+- Security: Comprehensive controls for protecting information and systems against unauthorized access.
+- Availability: System availability commitments and monitoring (99.95% SLA).
+- Processing Integrity: Controls to ensure system processing is complete, valid, and accurate.
+- Confidentiality: Controls for protecting confidential information.
+- Privacy: Controls for personal information collection, use, retention, and disposal.
+
+The most recent audit period covered January 2024 through December 2024 with zero critical findings and two minor observations (both remediated within 30 days).
+
+3. ISO 27001 SCOPE
+
+Our ISO 27001 certification covers the design, development, operation, and maintenance of the ShieldSync cloud security posture management platform, including:
+- All production infrastructure and environments
+- Software development lifecycle processes
+- Customer data handling and processing
+- Physical and environmental security of office locations
+- Human resources security processes
+
+4. PENDING CERTIFICATIONS
+
+ShieldSync is currently pursuing the following additional certifications:
+- FedRAMP Moderate: Expected completion Q2 2025
+- HIPAA: Business Associate Agreement (BAA) capability expected Q1 2025
+- SOC 3: General use report expected Q1 2025
+
+5. AUDIT REPORTS AVAILABILITY
+
+SOC 2 Type II reports are available to customers and prospects under NDA. ISO 27001 certificates are available upon request. Bridge letters are provided for periods between audit reports. Customers may request a meeting with our compliance team to discuss specific control details or conduct their own security assessment with 30 days advance notice.

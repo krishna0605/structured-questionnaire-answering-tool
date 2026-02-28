@@ -1,0 +1,26 @@
+Vendor Security Assessment Questionnaire
+ShieldSync Inc. — Q4 2024 Evaluation
+
+1. What security certifications does your organization currently hold (e.g., SOC 2, ISO 27001, HIPAA)?
+
+2. How is customer data encrypted at rest and in transit across your platform?
+
+3. Describe your incident response process, including average response and resolution times.
+
+4. What access control mechanisms are in place to limit employee access to customer data?
+
+5. How do you handle vulnerability management and patching across your infrastructure?
+
+6. What is your data retention and deletion policy when a customer terminates service?
+
+7. Describe your disaster recovery and business continuity plans, including RTO and RPO targets.
+
+8. How do you ensure compliance with GDPR and other international data protection regulations?
+
+9. What third-party services or subprocessors have access to customer data, and how are they vetted?
+
+10. Describe your network security architecture, including firewall rules, segmentation, and intrusion detection systems.
+
+11. How are API keys and secrets managed within your development and production environments?
+
+12. What security awareness training programs are provided to your employees, and how frequently?

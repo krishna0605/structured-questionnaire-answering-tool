@@ -1,0 +1,38 @@
+ShieldSync Inc. — Incident Response Plan
+Version 4.1 | Last Updated: November 2024
+
+1. INCIDENT CLASSIFICATION
+
+Security incidents at ShieldSync are classified into four severity levels:
+- SEV-1 (Critical): Active data breach, ransomware, or complete service outage affecting customers. Response within 15 minutes.
+- SEV-2 (High): Potential data exposure, partial service degradation, or confirmed intrusion attempt. Response within 1 hour.
+- SEV-3 (Medium): Suspicious activity, policy violation, or minor security event. Response within 4 hours.
+- SEV-4 (Low): Security advisory, informational alert, or minor configuration issue. Response within 24 hours.
+
+2. INCIDENT RESPONSE PROCESS
+
+Step 1 — Detection: Incidents are detected through automated monitoring (Datadog alerts, Splunk SIEM, CrowdStrike EDR), customer reports, or employee observations.
+
+Step 2 — Triage: The on-call security engineer assesses severity, assigns classification, and engages the appropriate response team within the defined SLA.
+
+Step 3 — Containment: Immediate actions to isolate affected systems, revoke compromised credentials, and prevent further damage. For SEV-1 incidents, this occurs within 30 minutes of detection.
+
+Step 4 — Investigation: Root cause analysis using forensic tools and log analysis. Evidence is preserved in a chain-of-custody compliant manner.
+
+Step 5 — Remediation: Apply fixes, patch vulnerabilities, and restore affected services. All changes go through emergency change management process.
+
+Step 6 — Communication: Affected customers are notified within 72 hours of a confirmed data breach, as required by GDPR. Internal stakeholders are briefed throughout the process.
+
+Step 7 — Post-Incident Review: A blameless post-mortem is conducted within 5 business days. Lessons learned are documented and preventive measures are implemented.
+
+3. AVERAGE RESPONSE METRICS (Last 12 months)
+
+- Mean Time to Detect (MTTD): 8 minutes
+- Mean Time to Respond (MTTR): 22 minutes for SEV-1, 45 minutes for SEV-2
+- Mean Time to Resolve: 4.2 hours for SEV-1, 12 hours for SEV-2
+- Total incidents in past 12 months: 23 (0 SEV-1, 3 SEV-2, 8 SEV-3, 12 SEV-4)
+- Data breaches in past 24 months: 0
+
+4. COMMUNICATION PROTOCOL
+
+ShieldSync maintains a status page at status.shieldsync.io updated in real-time during incidents. Dedicated customer contacts receive direct email notifications. A toll-free incident hotline is available 24/7 for enterprise customers. Post-incident reports are shared with affected customers within 10 business days.

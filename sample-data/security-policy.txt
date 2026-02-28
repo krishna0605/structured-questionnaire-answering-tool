@@ -1,0 +1,26 @@
+ShieldSync Inc. — Security Policy Document
+Version 3.2 | Last Updated: October 2024
+
+1. SECURITY CERTIFICATIONS AND COMPLIANCE
+
+ShieldSync holds SOC 2 Type II certification, which is audited annually by an independent third-party firm (Deloitte). We also maintain ISO 27001 certification, first obtained in 2023 and renewed annually. Our platform is compliant with GDPR, CCPA, and relevant provisions of HIPAA, although we do not currently process PHI directly. All certifications and audit reports are available upon request under NDA.
+
+2. ACCESS CONTROL POLICY
+
+ShieldSync enforces the principle of least privilege across all systems. Employee access to production systems and customer data requires multi-factor authentication (MFA) using hardware security keys (YubiKey). Access is role-based (RBAC), with quarterly access reviews conducted by the Security team. All access to customer data is logged and monitored via our SIEM system (Splunk). Privileged access requires approval from two senior engineers and is automatically revoked after 8 hours.
+
+3. ENCRYPTION STANDARDS
+
+All customer data is encrypted at rest using AES-256 encryption. Data in transit is protected by TLS 1.3 on all endpoints with no fallback to older protocols. Database encryption keys are managed through AWS Key Management Service (KMS) with automatic key rotation every 90 days. Backup data is also encrypted using AES-256 with separate key management.
+
+4. VULNERABILITY MANAGEMENT
+
+ShieldSync runs automated vulnerability scans weekly using Qualys and conducts manual penetration testing quarterly through a third-party firm (CrowdStrike). Critical vulnerabilities (CVSS 9.0+) are patched within 24 hours of discovery. High-severity vulnerabilities are patched within 72 hours. All patches go through our CI/CD pipeline with automated security testing before deployment. We maintain a bug bounty program through HackerOne with payouts ranging from $500 to $15,000.
+
+5. API KEY AND SECRET MANAGEMENT
+
+All API keys and secrets are stored in HashiCorp Vault with automatic rotation. Production secrets are never stored in code repositories or configuration files. Developers use short-lived credentials that expire after 12 hours. Credentials are injected at runtime through environment variables managed by our deployment pipeline. Access to Vault is audited and requires MFA authentication.
+
+6. SECURITY TRAINING
+
+All employees complete mandatory security awareness training within their first week and then annually. The training program covers phishing awareness, social engineering, secure coding practices, and data handling procedures. Engineers receive additional specialized training on OWASP Top 10, secure code review practices, and incident response procedures. We conduct quarterly phishing simulations with a target failure rate below 5%.

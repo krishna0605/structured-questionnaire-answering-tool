@@ -1,0 +1,29 @@
+ShieldSync Inc. — Data Handling and Privacy Policy
+Version 2.8 | Last Updated: September 2024
+
+1. DATA CLASSIFICATION
+
+ShieldSync classifies data into four categories: Public, Internal, Confidential, and Restricted. Customer data is always classified as Confidential or Restricted. All employees must handle data according to its classification level. Restricted data requires additional encryption and access controls beyond standard Confidential data handling procedures.
+
+2. DATA ENCRYPTION AND STORAGE
+
+Customer data is stored in AWS regions specified by the customer's contract (default: us-east-1 and eu-west-1). All data at rest is encrypted using AES-256. All data in transit is encrypted using TLS 1.3. Database backups are encrypted and stored in geographically separate AWS regions with a retention period of 30 days. Point-in-time recovery is available for the past 35 days.
+
+3. DATA RETENTION AND DELETION
+
+Upon contract termination, customer data is retained for 30 days to allow for data export. After 30 days, all customer data is permanently deleted from primary and backup systems within 14 business days. Deletion is verified through automated scripts and manual audit. A certificate of deletion is provided to the customer upon request. Log data containing customer identifiers is retained for 90 days for security investigation purposes and then permanently purged.
+
+4. GDPR AND INTERNATIONAL COMPLIANCE
+
+ShieldSync has appointed a Data Protection Officer (DPO) and maintains records of all processing activities as required by GDPR Article 30. We process data under the lawful basis of contractual necessity (Article 6(1)(b)). Data Processing Agreements (DPAs) are in place with all customers operating in the EU. We support data portability (Article 20) and the right to be forgotten (Article 17) through our admin dashboard. Standard Contractual Clauses (SCCs) are used for cross-border data transfers outside the EEA.
+
+5. THIRD-PARTY SUBPROCESSORS
+
+ShieldSync currently uses the following subprocessors with access to customer data:
+- Amazon Web Services (AWS) — Infrastructure hosting (us-east-1, eu-west-1)
+- Cloudflare — CDN and DDoS protection (no data storage)
+- Datadog — Infrastructure monitoring (aggregated metrics only)
+- Stripe — Payment processing (handles payment data only)
+- SendGrid — Transactional email (email addresses only)
+
+All subprocessors undergo annual security assessments. Customers are notified 30 days prior to any new subprocessor being added, with the ability to object. Each subprocessor has a DPA in place and maintains SOC 2 Type II certification at minimum.
