@@ -394,21 +394,6 @@ export default function DashboardPage() {
                       <FileText style={{ width: '22px', height: '22px', color: '#a78bfa' }} />
                     </div>
                     <ChevronRight style={{ width: '20px', height: '20px', color: '#6b6b80' }} />
-                    <motion.button
-                      onClick={(e) => { e.stopPropagation(); setDeleteTarget(project); }}
-                      whileHover={{ scale: 1.15, backgroundColor: 'rgba(239,68,68,0.15)' }}
-                      whileTap={{ scale: 0.9 }}
-                      style={{
-                        width: '32px', height: '32px', borderRadius: '8px', border: 'none',
-                        background: 'transparent', color: '#6b6b80', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        transition: 'color 0.2s',
-                      }}
-                      onMouseOver={(e) => (e.currentTarget.style.color = '#ef4444')}
-                      onMouseOut={(e) => (e.currentTarget.style.color = '#6b6b80')}
-                    >
-                      <Trash2 style={{ width: '16px', height: '16px' }} />
-                    </motion.button>
                   </div>
                   <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'white', marginBottom: '6px', position: 'relative', zIndex: 10 }}>{project.name}</h3>
                   {project.description && (
@@ -421,9 +406,26 @@ export default function DashboardPage() {
                       {project.description}
                     </p>
                   )}
-                  <p style={{ fontSize: '13px', color: '#4a4a5e', position: 'relative', zIndex: 10 }}>
-                    Created {new Date(project.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', zIndex: 10 }}>
+                    <p style={{ fontSize: '13px', color: '#4a4a5e', margin: 0 }}>
+                      Created {new Date(project.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
+                    <motion.button
+                      onClick={(e) => { e.stopPropagation(); setDeleteTarget(project); }}
+                      whileHover={{ scale: 1.15, backgroundColor: 'rgba(239,68,68,0.15)' }}
+                      whileTap={{ scale: 0.9 }}
+                      style={{
+                        width: '28px', height: '28px', borderRadius: '6px', border: 'none',
+                        background: 'transparent', color: '#4a4a5e', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'color 0.2s',
+                      }}
+                      onMouseOver={(e) => (e.currentTarget.style.color = '#ef4444')}
+                      onMouseOut={(e) => (e.currentTarget.style.color = '#4a4a5e')}
+                    >
+                      <Trash2 style={{ width: '14px', height: '14px' }} />
+                    </motion.button>
+                  </div>
                 </SpotlightCard>
               </motion.div>
             ))}
