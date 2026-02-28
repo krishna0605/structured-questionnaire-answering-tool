@@ -194,7 +194,12 @@ export default function ProjectPage() {
       if (res.ok) {
         const data = await res.json();
         if (data.noChanges) {
-          toast('No changes to save — everything is up to date', { id: tid, icon: 'ℹ️', duration: 3000 });
+          toast('No changes to save — everything is up to date', {
+            id: tid,
+            icon: '⚠️',
+            duration: 4000,
+            style: { background: '#1c1c28', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)', fontWeight: 600 },
+          });
         } else {
           toast.success('Version saved!', { id: tid });
         }
